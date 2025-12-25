@@ -6,25 +6,26 @@ import "forge-std/Script.sol";
 import {CUTSceneRegistry} from "../src/CUTSceneRegistry.sol";
 import {CUTAlbum} from "../src/CUTAlbum.sol";
 
-contract DeployV0 is Script {
+contract DeployCUT is Script {
     function run() external {
-        // Environment:
-        // - PRIVATE_KEY: deployer key
-        // - ALBUM_NAME: optional (default "CUT Album")
-        // - ALBUM_SYMBOL: optional (default "CUT")
         uint256 pk = vm.envUint("PRIVATE_KEY");
 
+        // Required
+        address treasury = vm.envAddress("CUT_TREASURY");
+
+        // Optional
         string memory name_ = vm.envOr("ALBUM_NAME", string("CUT Album"));
         string memory symbol_ = vm.envOr("ALBUM_SYMBOL", string("CUT"));
 
         vm.startBroadcast(pk);
 
         CUTSceneRegistry sceneRegistry = new CUTSceneRegistry();
-        CUTAlbum album = new CUTAlbum(address(sceneRegistry), name_, symbol_);
+        CUTAlbum album = new CUTAlbum(address(sceneRegistry), treasury, name_, symbol_);
 
         vm.stopBroadcast();
 
         console2.log("CUTSceneRegistry:", address(sceneRegistry));
         console2.log("CUTAlbum:", address(album));
+        console2.log("CUT_TREASURY:", treasury);
     }
 }
