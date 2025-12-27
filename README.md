@@ -11,6 +11,42 @@ CUT is a protocol, not a platform.
 
 ---
 
+## Legal Disclaimer
+
+This repository contains general-purpose, open-source smart contracts implementing the CUT protocol.
+
+The authors and contributors:
+
+- do not operate a music service, marketplace, platform, or application
+- do not curate, rank, promote, or distribute content
+- do not verify or supervise artists, scenes, storage nodes, or users
+- do not enforce or guarantee royalties, payouts, or off-chain economics
+- do not provide legal, financial, or tax advice
+- are not responsible for deployments, integrations, or real-world usage
+
+All deployments of the CUT protocol contracts are performed **at the risk of the deployer**.
+
+No warranty of any kind is provided.  
+The smart contracts are offered strictly **as-is**, without guarantees of correctness, fitness for any purpose, availability, or security.
+
+The authors and contributors are not liable for any damages, losses, claims, or issues arising from the use, misuse, or failure of the CUT protocol contracts or any derivative work.
+
+By deploying or interacting with these contracts, you acknowledge and agree that all responsibility for legal compliance, operation, and outcomes lies solely with you.
+
+---
+
+## Protocol Finality & Immutability
+
+**CUT Protocol is finished infrastructure.**
+
+The core smart contracts are intentionally minimal, deterministic, and **will not be modified, upgraded, or extended**. There is no upgrade path, governance mechanism, or maintainer intervention.
+
+CUT is provided as neutral, general-purpose settlement infrastructure. Its behavior is fully defined by the deployed code and does not depend on any individual, organization, or ongoing development.
+
+All future innovation is expected to happen **off-chain or on top of the protocol**, without requiring changes to the protocol itself.
+
+---
+
 ## Scope and Guarantees
 
 The CUT protocol guarantees:
@@ -34,13 +70,13 @@ The CUT protocol explicitly does **not**:
 
 ## Repositories
 
-- **`cut-protocol`**  
+- **cut-protocol**  
   This repository. Immutable on-chain contracts:
   - album minting
   - scene registry
   - protocol fee enforcement
 
-- **[cut-tooling(https://github.com/pablo-chacon/cut-tooling)**  
+- **[cut-tooling](https://github.com/pablo-chacon/cut-tooling)**  
   Off-chain specifications and reference tools:
   - Radio Manifest format
   - Merkle root + proof generation
@@ -56,7 +92,7 @@ Alternative tooling implementations are valid.
 
 Primary sale economics (reference model):
 
-- **96%** Artist (seller / minter proceeds)
+- **96%** Artist (seller / minter proceeds, reference model only)
 - **0.5%** Protocol fee (**enforced on-chain, immutable**)
 - **2%** Scene radio artists (equal split, off-chain)
 - **1%** Storage nodes (equal split, off-chain)
@@ -127,7 +163,7 @@ These addresses constitute the canonical protocol deployment.
 
 A **scene** is identified by a `bytes32 sceneId`.
 
-Recommended derivation (tooling convention):
+Recommended derivation (off-chain tooling convention):
 
 ```
 sceneId = keccak256(utf8("<scene-name>"))
@@ -179,13 +215,13 @@ The protocol does **not** interpret:
 * licenses
 * artist identities
 
+All album metadata and radio semantics are opaque to the protocol.
 Those concerns are strictly off-chain.
 
 ---
 
 ## Legal and Operational Notes
 
-* CUT contracts are provided **as-is**, without warranty.
 * Deployers are responsible for:
 
   * selecting treasury addresses
