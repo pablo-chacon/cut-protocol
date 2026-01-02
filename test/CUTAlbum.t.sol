@@ -16,26 +16,33 @@ contract CUTAlbumTest is Test {
     address buyer    = address(0xB0B);
 
     bytes32 sceneId;
+    uint256 albumId;
+
 
     function setUp() external {
-        // Fund actors
         vm.deal(seller, 100 ether);
         vm.deal(buyer, 100 ether);
 
-        // Deploy scene registry
         sceneRegistry = new CUTSceneRegistry();
 
-        // Create a scene
         sceneId = keccak256("scene:test");
         vm.prank(seller);
         sceneRegistry.createScene(sceneId, bytes32(0));
 
-        // Deploy album contract
         album = new CUTAlbum(
             address(sceneRegistry),
             treasury,
             "CUT Album",
             "CUT"
+        );
+
+        // Create album once (Model A)
+        vm.prank(seller);
+        albumId = album.createAlbum(
+            sceneId,
+            keccak256("radioRoot"),
+            keccak256("contentRoot"),
+            10 // maxSupply
         );
     }
 
@@ -48,11 +55,9 @@ contract CUTAlbumTest is Test {
         uint256 expectedFee = (price * 50) / 10_000;
 
         vm.prank(seller);
-        album.mintAlbum{value: price}(
+        album.mintAlbumCopy{value: price}(
+            albumId,
             buyer,
-            sceneId,
-            keccak256("radioRoot"),
-            keccak256("contentRoot"),
             "ipfs://album",
             price
         );
@@ -73,11 +78,9 @@ contract CUTAlbumTest is Test {
         uint256 treasuryBefore = treasury.balance;
 
         vm.prank(seller);
-        album.mintAlbum{value: price}(
+        album.mintAlbumCopy{value: price}(
+            albumId,
             buyer,
-            sceneId,
-            keccak256("radioRoot"),
-            keccak256("contentRoot"),
             "ipfs://album",
             price
         );
@@ -96,7 +99,7 @@ contract CUTAlbumTest is Test {
     }
 
     /* -------------------------------------------------------------
-       Test 3: free mint (price = 0) transfers no ETH
+       Test 3: free copy mint (price = 0) transfers no ETH
        ------------------------------------------------------------- */
 
     function test_freeMintTransfersNoEth() external {
@@ -104,11 +107,9 @@ contract CUTAlbumTest is Test {
         uint256 treasuryBefore = treasury.balance;
 
         vm.prank(seller);
-        album.mintAlbum(
+        album.mintAlbumCopy(
+            albumId,
             buyer,
-            sceneId,
-            keccak256("radioRoot"),
-            keccak256("contentRoot"),
             "ipfs://album",
             0
         );
@@ -133,11 +134,9 @@ contract CUTAlbumTest is Test {
             )
         );
 
-        album.mintAlbum{value: price - 1}(
+        album.mintAlbumCopy{value: price - 1}(
+            albumId,
             buyer,
-            sceneId,
-            keccak256("radioRoot"),
-            keccak256("contentRoot"),
             "ipfs://album",
             price
         );

@@ -8,7 +8,9 @@ pragma solidity ^0.8.24;
 ///  - keep on-chain data minimal and verifiable
 library CUTTypes {
 
+    // ---------------------------------------------------------------------
     // Scene
+    // ---------------------------------------------------------------------
 
     struct Scene {
         address creator;
@@ -16,20 +18,13 @@ library CUTTypes {
         bool exists;
     }
 
-    // Album 
-
-    struct AlbumData {
-        bytes32 sceneId;      // immutable binding to a scene namespace
-        bytes32 radioRoot;    // Merkle root commitment of the album's radio field
-        bytes32 contentRoot;  // optional commitment to album bundle manifest
-        address creator;      // minter/creator address (informational)
-    }
-
-    // Radio leaf 
+    // ---------------------------------------------------------------------
+    // Radio leaf
+    // ---------------------------------------------------------------------
 
     /// @notice Canonical radio track leaf fields. All fixed-width to prevent ambiguity.
     /// @dev uriHash is keccak256(utf8(uri)), not the uri string.
-    ///      licenseHash is keccak256(utf8(licenseText)) OR a precomputed hash you commit to.
+    ///      licenseHash is keccak256(utf8(licenseText)) OR a precomputed hash.
     ///      sceneTag is optional tag hash; use bytes32(0) if unused.
     ///      artistRef is optional DID/ENS hash; use bytes32(0) if unused.
     struct RadioLeaf {
@@ -62,6 +57,15 @@ library CUTTypes {
         bytes32 sceneTag,
         bytes32 artistRef
     ) internal pure returns (bytes32) {
-        return keccak256(abi.encode(trackId, uriHash, licenseHash, sceneTag, artistRef));
+        return keccak256(
+            abi.encode(
+                trackId,
+                uriHash,
+                licenseHash,
+                sceneTag,
+                artistRef
+            )
+        );
     }
 }
+

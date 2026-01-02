@@ -3,7 +3,7 @@
 
 CUT is a **minimal Ethereum protocol** for music ownership and bounded discovery.
 
-The protocol enforces a fixed **0.5% immutable protocol fee** on primary album sales.
+The protocol enforces a fixed **0.5% immutable protocol fee** on **primary album copy mints**.
 All other coordination, economics, and behavior (radio discovery, storage participation,
 payout distribution) are handled **off-chain** and are **out of scope** for this protocol.
 
@@ -51,20 +51,20 @@ All future innovation is expected to happen **off-chain or on top of the protoco
 
 The CUT protocol guarantees:
 
-- On-chain album minting
-- On-chain ownership (ERC-721–style semantics)
-- A fixed, immutable **0.5% protocol fee**
-- Cryptographic commitment to off-chain radio data via a Merkle root
+* On-chain **album creation** with fixed supply
+* On-chain **ownership of album copies** (ERC-721)
+* A fixed, immutable **0.5% protocol fee**
+* Cryptographic commitment to off-chain radio data via a Merkle root
 
 The CUT protocol explicitly does **not**:
 
-- Operate a marketplace
-- Custody user funds (beyond atomic settlement at mint)
-- Enforce royalties beyond the protocol fee
-- Enforce radio payouts or storage payouts
-- Rank, curate, or promote content
-- Provide identity, KYC, or discovery services
-- Govern scenes, artists, or tooling behavior
+* Operate a marketplace
+* Custody user funds (beyond atomic settlement at mint)
+* Enforce royalties beyond the protocol fee
+* Enforce radio payouts or storage payouts
+* Rank, curate, or promote content
+* Provide identity, KYC, or discovery services
+* Govern scenes, artists, or tooling behavior
 
 ---
 
@@ -88,21 +88,22 @@ Alternative tooling implementations are valid.
 
 ---
 
-## Economics (CUT v0)
+## CUT Economics
 
 Primary sale economics (reference model):
 
-- **96%** Artist (seller / minter proceeds, reference model only)
-- **0.5%** Protocol fee (**enforced on-chain, immutable**)
-- **2%** Scene radio artists (equal split, off-chain)
-- **1%** Storage nodes (equal split, off-chain)
+* **96%** Artist / seller proceeds (off-chain convention)
+* **0.5%** Protocol fee (**enforced on-chain, immutable**)
+* **2%** Scene radio artists (equal split, off-chain)
+* **1%** Storage nodes (equal split, off-chain)
 
 The CUT protocol enforces **only** the 0.5% protocol fee.
 
 All other percentages are:
-- informational
-- tooling-defined
-- non-binding at the protocol level
+
+* informational
+* tooling-defined
+* non-binding at the protocol level
 
 ---
 
@@ -201,22 +202,51 @@ Scenes are namespaces only.
 
 ## Albums
 
-Albums minted through `CUTAlbum`:
+An **album** is defined **once**, with immutable parameters and a fixed maximum supply.
+Each purchase mints a **unique ERC-721 copy** referencing that album.
 
-* reference a `sceneId`
-* commit to a `radioRoot` (Merkle root)
-* define a `tokenURI` (metadata pointer)
-* perform atomic ETH settlement at mint
+Album identity and ownership of copies are intentionally separated.
 
-The protocol does **not** interpret:
+Album **creation** in CUT is a **two-step process**:
 
-* radio manifests
-* track lists
-* licenses
-* artist identities
+### 1. Album creation
 
-All album metadata and radio semantics are opaque to the protocol.
-Those concerns are strictly off-chain.
+An album definition includes:
+
+* `sceneId`: namespace reference
+* `radioRoot`:  Merkle root commitment to the album’s radio set
+* `contentRoot`: optional commitment to off-chain album bundle metadata
+* `maxSupply`: maximum number of copies that can ever be minted
+
+This step defines the album but **does not mint any tokens**.
+
+
+### 2. Album copy minting
+
+Each purchase:
+
+* mints a **unique ERC-721 token**
+* references an existing album
+* performs atomic ETH settlement
+* enforces the immutable protocol fee
+* increments the album’s minted supply
+
+Once `maxSupply` is reached, no further copies can be minted.
+
+---
+
+## What the protocol does **not** interpret
+
+The protocol treats all album metadata as opaque.
+
+It does **not** interpret or enforce:
+
+* radio manifests or track lists
+* licenses or copyright terms
+* artist identity
+* content hosting or availability
+
+All such semantics are handled **off-chain**.
 
 ---
 
