@@ -3,8 +3,8 @@ pragma solidity ^0.8.24;
 
 import "forge-std/Script.sol";
 
-import {CUTSceneRegistry} from "../src/CUTSceneRegistry.sol";
-import {CUTAlbum} from "../src/CUTAlbum.sol";
+import {CUTSceneRegistry} from "../contracts/CUTSceneRegistry.sol";
+import {CUTAlbum} from "../contracts/CUTAlbum.sol";
 
 contract DeployCUT is Script {
     function run() external {

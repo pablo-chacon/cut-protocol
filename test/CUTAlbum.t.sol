@@ -3,8 +3,8 @@ pragma solidity ^0.8.24;
 
 
 import "forge-std/Test.sol";
-import {CUTAlbum} from "../src/CUTAlbum.sol";
-import {CUTSceneRegistry} from "../src/CUTSceneRegistry.sol";
+import {CUTAlbum} from "../contracts/CUTAlbum.sol";
+import {CUTSceneRegistry} from "../contracts/CUTSceneRegistry.sol";
 
 
 contract CUTAlbumTest is Test {
