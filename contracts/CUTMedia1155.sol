@@ -155,7 +155,7 @@ contract CUTMedia1155 is ERC1155 {
     // Copy mint (many, capped)
     /// @notice Mint copies of a release to `to`.
     /// @dev Typical usage: amount=1 (buy one copy).
-    ///      `priceWei` is the total payment for this mint call.
+    /// `priceWei` is the total payment for this mint call.
     function mintReleaseCopy(
         uint256 releaseId,
         address to,
@@ -276,20 +276,19 @@ contract CUTMedia1155 is ERC1155 {
 
     function verifyDiscoveryLeafMembershipStruct(
         uint256 releaseId,
-        CUTTypes.RadioLeaf calldata leaf,
+        CUTTypes.DiscoveryLeaf calldata leaf,
         bytes32[] calldata merkleProof
     ) external view returns (bool) {
         _requireReleaseExists(releaseId);
         bytes32 root = _releases[releaseId].radioRoot;
         if (root == bytes32(0)) return false;
 
-
-        bytes32 leafHash = CUTTypes.hashRadioLeafFields(
-            leaf.trackId,
+        bytes32 leafHash = CUTTypes.hashDiscoveryLeafFields(
+            leaf.itemId,
             leaf.uriHash,
             leaf.licenseHash,
             leaf.sceneTag,
-            leaf.artistRef
+            leaf.creatorRef
         );
 
         return MerkleProof.verify(merkleProof, root, leafHash);

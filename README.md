@@ -105,8 +105,8 @@ Primary sale economics (reference model):
 
 * **96%** Creator / seller proceeds (off-chain convention)
 * **0.5%** Protocol fee (**enforced on-chain, immutable**)
-* **2%** Scene discovery contributors (equal split, off-chain)
-* **1.5%** Storage / streaming nodes (equal split, off-chain)
+* **2%** Scene discovery contributors (equal split, **off-chain**)
+* **1.5%** Storage / streaming nodes (equal split, **off-chain**)
 
 The CUT protocol enforces **only** the 0.5% protocol fee.
 
