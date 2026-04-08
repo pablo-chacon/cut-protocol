@@ -3,3 +3,4 @@ node_modules
 remappings.txt
 lib/forge-std
 lib/openzeppelin-contracts
+foundry.lock
