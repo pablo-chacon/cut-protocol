@@ -14,6 +14,36 @@ CUT is a protocol, not a platform.
 
 ---
 
+## Settlement Model
+
+On every paid `mintReleaseCopy` call:
+
+| Recipient | Amount |
+|---|---|
+| Protocol treasury | 0.5% of `priceWei` |
+| `msg.sender` (caller) | 99.5% of `priceWei` |
+
+**Proceeds go to `msg.sender` — the caller of `mintReleaseCopy` — not to the release creator address stored at creation time.**
+
+This is intentional. CUT is a permissionless settlement primitive. Any address may call `mintReleaseCopy` on any release and receive the seller proceeds. Platforms, distributors, and tooling are responsible for:
+
+* controlling who may initiate mints (e.g. via their own access-gated frontend or contract wrapper)
+* splitting proceeds between creators, labels, and platforms (off-chain or via wrapper contracts)
+* enforcing any creator payout conventions
+
+The split between platforms, labels, and creators is **off-chain convention**, not enforced by the protocol.
+
+Reference economic model (informational only, non-binding):
+
+| Recipient | Amount |
+|---|---|
+| Protocol treasury | 0.5% (on-chain, immutable) |
+| Creator / seller proceeds | ~96% (off-chain convention) |
+| Scene discovery contributors | ~2% equal split (off-chain convention) |
+| Storage / streaming nodes | ~1.5% equal split (off-chain convention) |
+
+---
+
 ## Legal Disclaimer
 
 This repository contains general-purpose, open-source smart contracts implementing the CUT protocol.
@@ -99,25 +129,6 @@ Alternative tooling implementations are valid.
 
 ---
 
-## CUT Economics
-
-Primary sale economics (reference model):
-
-* **96%** Creator / seller proceeds (off-chain convention)
-* **0.5%** Protocol fee (**enforced on-chain, immutable**)
-* **2%** Scene discovery contributors (equal split, **off-chain**)
-* **1.5%** Storage / streaming nodes (equal split, **off-chain**)
-
-The CUT protocol enforces **only** the 0.5% protocol fee.
-
-All other percentages are:
-
-* informational
-* tooling-defined
-* non-binding at the protocol level
-
----
-
 ## Core Concepts
 
 ### Scenes
@@ -165,14 +176,18 @@ Each release is defined **once**, with immutable parameters and a fixed maximum 
 
 A release includes:
 
-* `sceneId`: namespace reference
-* `mediumType`: bytes32 identifier of the medium (e.g. `keccak256("music")`)
-* `contentRoot`: commitment to the paid content inventory
-* `radioRoot`: optional commitment to discovery content (may be zero)
-* `artworkHash`: on-chain commitment to release artwork
-* `artworkURI`: optional pointer (IPFS/Arweave)
-* `metadataURI`: ERC-1155 metadata URI
-* `maxSupply`: maximum number of copies that can ever be minted
+| Field | Description | Required |
+|---|---|---|
+| `sceneId` | Namespace reference | Yes — must be registered |
+| `mediumType` | `bytes32` medium identifier (e.g. `keccak256("music")`) | Yes — non-zero |
+| `contentRoot` | Merkle root committing to the paid content inventory | Yes — non-zero |
+| `radioRoot` | Merkle root committing to discovery/preview content | No — may be zero |
+| `artworkHash` | On-chain commitment to release artwork | No — may be zero |
+| `artworkURI` | Optional pointer (IPFS/Arweave) | No |
+| `metadataURI` | ERC-1155 metadata URI | Yes — non-empty |
+| `maxSupply` | Maximum copies that can ever be minted | Yes — non-zero |
+
+`contentRoot` is required to be non-zero. It is the canonical on-chain commitment to what buyers are purchasing. A release without a content commitment has no verifiable basis for sale.
 
 Release creation **does not mint any copies**.
 
@@ -243,7 +258,8 @@ All such semantics are handled **off-chain**.
 * Foundry (`forge`, `cast`)
 * RPC URL for target chain
 * Deployer private key
-* Treasury address (recommended: Safe multisig)
+* Treasury address (**strongly recommended: Safe multisig**)
+* Etherscan API key (for contract verification)
 
 ### Environment variables
 
@@ -251,9 +267,22 @@ All such semantics are handled **off-chain**.
 export PRIVATE_KEY=...
 export CUT_TREASURY=0xYourSafeAddress
 export RPC_URL=https://...
+export ETHERSCAN_API_KEY=...
 ```
 
-### Deploy contracts
+### Deploy and verify (mainnet)
+
+```bash
+FOUNDRY_PROFILE=mainnet forge script script/DeployCUT.s.sol \
+  --rpc-url "$RPC_URL" \
+  --broadcast \
+  --verify \
+  --etherscan-api-key "$ETHERSCAN_API_KEY"
+```
+
+The `mainnet` profile uses `optimizer_runs = 1_000_000`, appropriate for contracts expected to be called frequently over a long time horizon.
+
+### Deploy without verification (testnet / local)
 
 ```bash
 forge script script/DeployCUT.s.sol \
@@ -262,13 +291,28 @@ forge script script/DeployCUT.s.sol \
   --private-key "$PRIVATE_KEY"
 ```
 
-The deployment outputs:
+### Deployment output
 
-* `CUTSceneRegistry` address
-* `CUTMedia1155` address
-* configured `CUT_TREASURY`
+```
+=== CUT Protocol Deployment ===
+CUTSceneRegistry: 0x...
+CUTMedia1155:     0x...
+CUT_TREASURY:     0x...
+================================
+Record these addresses. They are immutable.
+```
 
-These addresses constitute the canonical protocol deployment.
+Record both contract addresses and the treasury address in a permanent deployment manifest. There is no upgrade path — these addresses are canonical.
+
+### Dependency pin
+
+The protocol is pinned to **OpenZeppelin Contracts v5.2.0**. Install with:
+
+```bash
+forge install OpenZeppelin/openzeppelin-contracts@v5.2.0
+```
+
+Do not upgrade the dependency without re-auditing the contracts. Changing the OZ version changes the deployed bytecode.
 
 ---
 
@@ -277,6 +321,7 @@ These addresses constitute the canonical protocol deployment.
 * The protocol surface is intentionally small
 * Contract behavior is deterministic and stable
 * Future evolution happens in **tooling**, not protocol upgrades
+* The `foundry.toml` dependency pin ensures reproducible bytecode across environments
 
 ---
 

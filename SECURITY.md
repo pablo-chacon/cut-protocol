@@ -18,7 +18,7 @@ The following components are considered in scope for security review:
 
 - Smart contracts in the `cut-protocol` repository
 - On-chain logic related to:
-  - album minting
+  - release creation and copy minting (any medium)
   - scene registry
   - protocol fee enforcement
   - Merkle root storage

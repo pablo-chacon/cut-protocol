@@ -1,2 +1,5 @@
 node_modules
-
+.vscode
+remappings.txt
+lib/forge-std
+lib/openzeppelin-contracts

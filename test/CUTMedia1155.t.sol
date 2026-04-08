@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-import "forge-std/Test.sol";
+import "../lib/forge-std/src/Test.sol";
 import {CUTMedia1155} from "../contracts/CUTMedia1155.sol";
 import {CUTSceneRegistry} from "../contracts/CUTSceneRegistry.sol";
 import {CUTTypes} from "../contracts/CUTTypes.sol";
@@ -134,6 +134,43 @@ contract CUTMedia1155Test is Test {
         assertEq(media.hasAccess(buyer, releaseId), true);
     }
 
+    function test_revertsOnZeroContentRoot() external {
+        bytes32 otherScene = keccak256("scene:noroot");
+        vm.prank(seller);
+        sceneRegistry.createScene(otherScene, bytes32(0));
+
+        vm.prank(seller);
+        vm.expectRevert(CUTMedia1155.InvalidContentRoot.selector);
+        media.createRelease(
+            otherScene,
+            mediumType,
+            radioRoot,
+            bytes32(0),
+            artworkHash,
+            artworkURI,
+            metadataURI,
+            10
+        );
+    }
+
+    function test_sellerProceedsGoToMintCaller_notCreator() external {
+        uint256 price = 1 ether;
+        address distributor = address(0xD1571);
+        vm.deal(distributor, 10 ether);
+
+        uint256 distributorBefore = distributor.balance;
+        uint256 sellerBefore = seller.balance;
+
+        vm.prank(distributor);
+        media.mintReleaseCopy{value: price}(releaseId, buyer, 1, price);
+
+        uint256 expectedFee = (price * 50) / 10_000;
+
+        // distributor sent price, got back expectedProceeds — net loss is the fee only
+        assertEq(distributor.balance, distributorBefore - expectedFee);
+        assertEq(seller.balance, sellerBefore);
+    }
+
     function test_verifyDiscoveryReturnsFalseWhenRootIsZero() external {
         bytes32 otherScene = keccak256("scene:other");
 
@@ -152,7 +189,7 @@ contract CUTMedia1155Test is Test {
             1
         );
 
-        bytes32;
+        bytes32[] memory emptyProof = new bytes32[](0);
 
         bool ok = media.verifyDiscoveryLeafMembership(
             noRootRelease,
@@ -186,12 +223,12 @@ contract CUTMedia1155Test is Test {
             1
         );
 
-        bytes32;
+        bytes32[] memory proofA = new bytes32[](1);
         proofA[0] = leafB;
 
         assertTrue(media.verifyDiscoveryLeafMembership(merkleRelease, leafA, proofA));
 
-        bytes32;
+        bytes32[] memory proofB = new bytes32[](1);
         proofB[0] = leafA;
 
         assertTrue(media.verifyDiscoveryLeafMembership(merkleRelease, leafB, proofB));

@@ -2,10 +2,10 @@
 pragma solidity ^0.8.24;
 
 
-import {ERC1155} from "openzeppelin-contracts/contracts/token/ERC1155/ERC1155.sol";
-import {MerkleProof} from "openzeppelin-contracts/contracts/utils/cryptography/MerkleProof.sol";
+import {ERC1155} from "../lib/openzeppelin-contracts/contracts/token/ERC1155/ERC1155.sol";
+import {MerkleProof} from "../lib/openzeppelin-contracts/contracts/utils/cryptography/MerkleProof.sol";
 import {CUTTypes} from "./CUTTypes.sol";
-
+import {CUTSceneRegistry} from "./CUTSceneRegistry.sol";
 
 interface ICUTSceneRegistryMinimal {
     function sceneExists(bytes32 sceneId) external view returns (bool);
@@ -86,6 +86,7 @@ contract CUTMedia1155 is ERC1155 {
     error NonexistentRelease(uint256 releaseId);
     error SupplyExceeded(uint256 releaseId);
     error InvalidMediumType();
+    error InvalidContentRoot();
     error InvalidMetadataURI();
     error InvalidMaxSupply();
     error InvalidAmount();
@@ -102,13 +103,29 @@ contract CUTMedia1155 is ERC1155 {
     }
 
     // Release creation
+
+    /// @notice Create a new release.
+    /// @param sceneId       Must be a registered scene.
+    /// @param mediumType    Non-zero bytes32 medium identifier (e.g. keccak256("music")).
+    /// @param radioRoot     Optional Merkle root for discovery/preview content. Zero if unused.
+    /// @param contentRoot   Non-zero Merkle root committing to the paid content inventory.
+    ///                      This is the canonical on-chain commitment to what buyers are purchasing.
+    ///                      Requiring non-zero ensures every release has a verifiable content commitment.
+    /// @param artworkHash   Optional on-chain commitment to release artwork bytes. Zero is allowed.
+    /// @param artworkURI    Optional convenience pointer (IPFS/Arweave). Empty string is allowed.
+    /// @param metadataURI   ERC-1155 metadata URI. Must be non-empty.
+    /// @param maxSupply     Maximum copies that can ever be minted. Must be non-zero.
+    /// @dev  Proceeds from mintReleaseCopy flow to msg.sender of that call (the distributor/seller),
+    ///       not necessarily to the release creator stored here. This is intentional: distribution
+    ///       is handled off-chain by whoever calls the mint function. Platforms and tooling are
+    ///       responsible for enforcing any creator payout conventions.
     function createRelease(
 
         bytes32 sceneId,
         bytes32 mediumType,
-        bytes32 radioRoot,       // allow 0 for non-music or unused discovery/demo
+        bytes32 radioRoot,
         bytes32 contentRoot,
-        bytes32 artworkHash,     // allow 0 if you really want, but recommended non-zero
+        bytes32 artworkHash,
         string calldata artworkURI,
         string calldata metadataURI,
         uint256 maxSupply
@@ -117,6 +134,7 @@ contract CUTMedia1155 is ERC1155 {
 
         if (!sceneRegistry.sceneExists(sceneId)) revert UnknownScene(sceneId);
         if (mediumType == bytes32(0)) revert InvalidMediumType();
+        if (contentRoot == bytes32(0)) revert InvalidContentRoot();
         if (maxSupply == 0) revert InvalidMaxSupply();
         if (bytes(metadataURI).length == 0) revert InvalidMetadataURI();
 
@@ -152,10 +170,21 @@ contract CUTMedia1155 is ERC1155 {
         );
     }
 
-    // Copy mint (many, capped)
+
     /// @notice Mint copies of a release to `to`.
     /// @dev Typical usage: amount=1 (buy one copy).
     /// `priceWei` is the total payment for this mint call.
+    ///
+    /// Settlement model:
+    ///   - 0.5% (PROTOCOL_FEE_BPS) of priceWei goes to protocolTreasury.
+    ///   - Remaining 99.5% goes to msg.sender (the caller — distributor, platform, or creator).
+    ///
+    /// IMPORTANT: Proceeds flow to msg.sender, not to the release creator address stored at
+    /// createRelease time. Any caller with the release ID can trigger a mint and receive proceeds.
+    /// This is intentional: CUT is a permissionless settlement primitive. Access control and
+    /// creator payout conventions (who is allowed to sell, how proceeds are split between
+    /// platforms, labels, and artists) are the responsibility of off-chain tooling and platforms
+    /// building on top of the protocol.
     function mintReleaseCopy(
         uint256 releaseId,
         address to,
