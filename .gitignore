@@ -1,6 +1,9 @@
 node_modules
 .vscode
 remappings.txt
-lib/forge-std
-lib/openzeppelin-contracts
+/lib/forge-std
+/lib/openzeppelin-contracts
 foundry.lock
+.env
+/out
+/cache
