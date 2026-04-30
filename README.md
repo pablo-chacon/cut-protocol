@@ -80,6 +80,16 @@ All future innovation is expected to happen **off-chain or on top of the protoco
 
 ---
 
+## Ethereum Mainnet Deployment
+
+Official CUT protocol contract addresses:
+  
+- CUTSceneRegistry: 0x53526f214419b40127Da06f37D4206078fb49424
+- CUTMedia1155:     0x0Aed9B8CfEC1F19a0f92F0f0a62CD49E3e16D69f
+- CUT_TREASURY:     0x10EE295B53bB7c6f7Ea0A7c127718750317EA3AA
+
+---
+
 ## Scope and Guarantees
 
 The CUT protocol guarantees:
@@ -302,7 +312,7 @@ CUT_TREASURY:     0x...
 Record these addresses. They are immutable.
 ```
 
-Record both contract addresses and the treasury address in a permanent deployment manifest. There is no upgrade path — these addresses are canonical.
+Record both contract addresses and the treasury address in a permanent deployment manifest. There is no upgrade path, these addresses are canonical.
 
 ### Dependency pin
 
