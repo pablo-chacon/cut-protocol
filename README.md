@@ -137,6 +137,10 @@ The CUT protocol explicitly does **not**:
 `cut-tooling` is optional and replaceable.
 Alternative tooling implementations are valid.
 
+* [**Managed Boredom RPG**](https://github.com/pablo-chacon/managed-boredom-rpg)
+* Example CUT protocol Implementation.
+* Text based RPG
+
 ---
 
 ## Core Concepts
